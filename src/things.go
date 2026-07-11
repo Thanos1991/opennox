@@ -88,6 +88,8 @@ func loadAllBinFileSections(thg *binfile.MemFile, buf []byte) error {
 		if sect == 0 {
 			break
 		}
+		thingsLog.Info("thing.bin section",
+			"fourcc", fmt.Sprintf("%q", string([]byte{byte(sect >> 24), byte(sect >> 16), byte(sect >> 8), byte(sect)})))
 		switch sect {
 		case 0x5350454C: // SPEL
 			if err := s.Spells.Read(thg, func(ref *things.ImageRef) unsafe.Pointer {
@@ -130,9 +132,11 @@ func loadAllBinFileSections(thg *binfile.MemFile, buf []byte) error {
 			if err := nox_thing_read_IMAG_415700(thg); err != nil {
 				return err
 			}
+			thingsLog.Info("thing.bin done (IMAG)", "wallDefs", s.Walls.DefsCount())
 			return nil
 		}
 	}
+	thingsLog.Info("thing.bin done (EOF)", "wallDefs", s.Walls.DefsCount())
 	return nil
 }
 

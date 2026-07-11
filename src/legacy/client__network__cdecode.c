@@ -1,6 +1,15 @@
 #include <math.h>
+#include <string.h>
 
 #include "client__network__cdecode.h"
+
+// Float read from a packet buffer at unaligned offset; a direct *(float*)
+// cast makes clang emit vldr, which alignment-faults on ARM.
+static float nox_ld_f32_ua(const void* p) {
+	float v;
+	memcpy(&v, p, sizeof(v));
+	return v;
+}
 
 #include "GAME1.h"
 #include "GAME1_1.h"
@@ -1290,7 +1299,7 @@ int nox_xxx_netOnPacketRecvCli_48EA70_switch(int a1, int op, unsigned char* data
 		if (!(uint32_t)v5) {
 			return 7;
 		}
-		nox_xxx_spriteChangeIntensity_484D70_light_intensity(v5 + 136, *(float*)(data + 3));
+		nox_xxx_spriteChangeIntensity_484D70_light_intensity(v5 + 136, nox_ld_f32_ua(data + 3));
 		return 7;
 	case 94: // MSG_REPORT_Z_PLUS
 		v178 = nox_xxx_netClearHighBit_578B30(*(uint16_t*)(data + 1));
@@ -1426,7 +1435,7 @@ int nox_xxx_netOnPacketRecvCli_48EA70_switch(int a1, int op, unsigned char* data
 		}
 		if (v83 == nox_player_netCode_85319C) {
 			LOBYTE(k) = *(uint8_t*)(data + 7);
-			sub_467470(k, *(float*)(data + 3));
+			sub_467470(k, nox_ld_f32_ua(data + 3));
 		}
 		return 8;
 	case 105: // MSG_REPORT_NPC

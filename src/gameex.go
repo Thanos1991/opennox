@@ -307,8 +307,33 @@ func call_OnLibraryNotice_265(arg3 int) {
 	}
 }
 
+// videoZoomed tracks the touch UI zoom toggle: when set, the game renders at
+// 3/4 of the configured resolution, bringing the camera closer.
+var videoZoomed bool
+
 func gameexOnKeyboardPress(kcode keybind.Key) {
 	c := noxClient
+	if kcode == keybind.Key(0xC5) && noxflags.HasGame(noxflags.GameModeCoop) { // Pause/Break: toggle solo pause
+		if noxflags.HasGame(noxflags.GamePause) {
+			noxflags.UnsetGame(noxflags.GamePause)
+			nox_ticks_reset_416D40()
+		} else {
+			noxflags.SetGame(noxflags.GamePause)
+		}
+		return
+	}
+	if kcode == keybind.Key(0xC6) && noxflags.HasGame(noxflags.GameModeCoop) { // zoom toggle (touch UI)
+		videoZoomed = !videoZoomed
+		mode := image.Point{
+			X: viper.GetInt(configVideoWidth),
+			Y: viper.GetInt(configVideoHeight),
+		}
+		if videoZoomed {
+			mode = image.Point{X: mode.X * 3 / 4, Y: mode.Y * 3 / 4}
+		}
+		videoUpdateGameMode(mode)
+		return
+	}
 	if ((legacy.Get_gameex_flags()>>3)&1 != 0) && (kcode == keybind.KeyLBracket || kcode == keybind.KeyRBracket) {
 		v8 := byte(bool2int(kcode == keybind.KeyLBracket))
 		// checks some gameFlags that are yet undiscovered

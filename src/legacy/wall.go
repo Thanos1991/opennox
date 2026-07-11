@@ -98,19 +98,44 @@ func nox_xxx_getWallDrawOffset_46A3F0(ind int, a2 int, a3 int, a4 int, px, py *C
 	*py = C.int(v.Y)
 }
 
+var badWallIndLogged int
+
+// wallDefSafe tolerates out-of-range wall indices from map data instead of
+// crashing; logs the first few to diagnose where corrupt indices come from.
+func wallDefSafe(ind int, where string) *server.WallDef {
+	d := GetServer().S().Walls.DefByInd(ind)
+	if d == nil && badWallIndLogged < 20 {
+		badWallIndLogged++
+		println("BAD WALL INDEX:", where, "ind=", ind)
+	}
+	return d
+}
+
 //export nox_xxx_mapWallMaxVariation_410DD0
 func nox_xxx_mapWallMaxVariation_410DD0(ind int, a2 int, a3 int) byte {
-	return GetServer().S().Walls.DefByInd(ind).Variations(a2, a3)
+	d := wallDefSafe(ind, "maxVariation")
+	if d == nil {
+		return 0
+	}
+	return d.Variations(a2, a3)
 }
 
 //export nox_xxx_map_410E00
 func nox_xxx_map_410E00(ind int) byte {
-	return GetServer().S().Walls.DefByInd(ind).Field749
+	d := wallDefSafe(ind, "map410E00")
+	if d == nil {
+		return 0
+	}
+	return d.Field749
 }
 
 //export nox_xxx_mapWallGetHpByTile_410E20
 func nox_xxx_mapWallGetHpByTile_410E20(ind int) byte {
-	return GetServer().S().Walls.DefByInd(ind).Health41
+	d := wallDefSafe(ind, "hpByTile")
+	if d == nil {
+		return 0
+	}
+	return d.Health41
 }
 
 //export nox_xxx_wallFindOpenSound_410EE0

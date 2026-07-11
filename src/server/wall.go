@@ -50,6 +50,10 @@ func (s *serverWalls) Defs() []WallDef {
 	return s.defs[:s.defsCnt]
 }
 
+func (s *serverWalls) DefsCount() int {
+	return s.defsCnt
+}
+
 func (s *serverWalls) DefByInd(i int) *WallDef {
 	if i < 0 || i >= s.defsCnt {
 		return nil

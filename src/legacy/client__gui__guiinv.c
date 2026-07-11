@@ -1,6 +1,16 @@
 #include "client__gui__guiinv.h"
 #include "client__gui__window.h"
 
+#include <string.h>
+
+// See GAME3_3.c: avoids clang's vldr (alignment-faulting on ARM) for int
+// loads at the odd-offset playerdata fields when converted to double.
+static int32_t nox_ld_i32_ua(uint32_t addr) {
+	int32_t v;
+	memcpy(&v, (const void*)addr, sizeof(v));
+	return v;
+}
+
 #include "GAME1.h"
 #include "GAME1_1.h"
 #include "GAME1_2.h"
@@ -883,7 +893,7 @@ void nox_client_makePlayerStatsDlg_463880(int* a1) {
 	*(float*)&v68 = v69 * 100.0 * 0.011111111;
 	float v63 = v70[2] * 100.0 / v71[2];
 	int v64 = nox_float2int(v63);
-	float v47 = (double)*(int*)(v4 + 2235) * 100.0 / v71[2] + *(float*)&v68 + 0.5;
+	float v47 = (double)nox_ld_i32_ua(v4 + 2235) * 100.0 / v71[2] + *(float*)&v68 + 0.5;
 	int v48 = nox_float2int(v47);
 	wchar2_t* v28 = nox_strman_loadString_40F1D0("MinMaxFormat", 0, "C:\\NoxPost\\src\\Client\\Gui\\guiinv.c", 2045);
 	nox_swprintf(v77, v28, v48, v64);
@@ -892,7 +902,7 @@ void nox_client_makePlayerStatsDlg_463880(int* a1) {
 	LODWORD(v69) = v25 + v73;
 	nox_xxx_drawStringWrap_43FAF0(*(int*)&dword_5d4594_1063636, v77, v10 - v76 + 193, v25 + v73, 200, 0);
 	nox_xxx_drawSetTextColor_434390(nox_color_white_2523948);
-	float v65 = (double)*(int*)(v4 + 2235) * 100.0 / v71[2] + *(float*)&v68 + 0.5;
+	float v65 = (double)nox_ld_i32_ua(v4 + 2235) * 100.0 / v71[2] + *(float*)&v68 + 0.5;
 	int v29 = nox_float2int(v65);
 	nox_swprintf(v77, L"%d", v29);
 	nox_xxx_drawStringWrap_43FAF0(*(int*)&dword_5d4594_1063636, v77, v10 + 45, SLODWORD(v69), 200, 0);

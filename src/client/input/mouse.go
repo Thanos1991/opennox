@@ -413,12 +413,17 @@ func (h *mouseHandler) nox_client_mouseBtnStateApply(cseq uint, evt *noxMouseSta
 			cur.pressed = true
 			cur.seq = cseq
 		}
+		h.log.Info("btn down", "btn", int(btn), "pos", pos, "state", int(cur.state))
 	} else {
-		if int(cseq)-int(cur.seq) >= 15 || dx*dx+dy*dy >= 100 {
+		click := true
+		if int(cseq)-int(cur.seq) >= clickMaxSeqDelta || dx*dx+dy*dy >= clickMaxDist2 {
 			cur.state = ToMouseState(btn, NOX_MOUSE_DRAG_END)
+			click = false
 		} else {
 			cur.state = ToMouseState(btn, NOX_MOUSE_UP)
 		}
+		h.log.Info("btn up", "btn", int(btn), "pos", pos,
+			"dseq", int(cseq)-int(cur.seq), "dist2", dx*dx+dy*dy, "click", click)
 		cur.pressed = false
 		cur.seq = cseq
 	}

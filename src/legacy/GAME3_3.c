@@ -29,6 +29,16 @@
 
 #include "common__gamemech__pausefx.h"
 
+// Reads an int32 that may sit at an unaligned address. The direct
+// (double)*(int*)(...) form makes clang load through VFP (vldr), which
+// requires 4-byte alignment and raises SIGBUS on ARM for the odd offsets
+// this decompiled code uses. memcpy pins the assumed alignment to 1.
+static int32_t nox_ld_i32_ua(uint32_t addr) {
+	int32_t v;
+	memcpy(&v, (const void*)addr, sizeof(v));
+	return v;
+}
+
 #include "client__gui__window.h"
 #include "client__video__draw_common.h"
 #include "common/fs/nox_fs.h"
@@ -7698,9 +7708,9 @@ int nox_xxx_plrReadVals_4EEDC0(nox_object_t* a1p, int a2) {
 			nox_xxx_abilGivePlayerAll_4EED40(v2, v24, a2);
 		}
 	}
-	*(float*)(v2 + 120) = (double)*(int*)(v4 + 2239) / v25[3] * 20.0 + 10.0;
+	*(float*)(v2 + 120) = (double)nox_ld_i32_ua(v4 + 2239) / v25[3] * 20.0 + 10.0;
 	*(uint16_t*)(*(uint32_t*)(v3 + 276) + 3652) =
-		(long long)(((double)*(int*)(v4 + 2239) / v25[3] * 1250.0 + 750.0) * *getMemDoublePtr(0x581450, 10216));
+		(long long)(((double)nox_ld_i32_ua(v4 + 2239) / v25[3] * 1250.0 + 750.0) * *getMemDoublePtr(0x581450, 10216));
 	*(uint16_t*)(v2 + 490) = *(uint16_t*)(*(uint32_t*)(v3 + 276) + 3652);
 	sub_56F780(*(uint32_t*)(*(uint32_t*)(v3 + 276) + 4624), *(uint32_t*)(v4 + 2239));
 	sub_56F780(*(uint32_t*)(*(uint32_t*)(v3 + 276) + 4620), *(uint32_t*)(v4 + 2235));

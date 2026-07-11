@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "GAME1.h"
 #include "GAME1_1.h"
 #include "GAME1_3.h"
@@ -225,9 +227,13 @@ int nox_xxx_netOnPacketRecvServ_51BAD0_net_sdecode_switch(int a1, unsigned char*
 			}
 		}
 		if (!nox_common_gameFlags_check_40A5C0(128) && v34) {
-			v36 = (int*)(data + 1);
+			// data+1 is odd; direct int reads make clang emit LDM/vldr which
+			// alignment-fault on ARM. Copy the 5 spell ids to an aligned local.
+			int spells5[5];
+			memcpy(spells5, data + 1, sizeof(spells5));
+			v36 = spells5;
 			v37 = 0;
-			v38 = data + 1;
+			v38 = (uint32_t*)spells5;
 			v39 = 5;
 			while (v39) {
 				if (*v38) {
@@ -239,7 +245,7 @@ int nox_xxx_netOnPacketRecvServ_51BAD0_net_sdecode_switch(int a1, unsigned char*
 			if ((v37 != 1 || !nox_xxx_spellHasFlags_424A50(*v36, 32) || !*(uint32_t*)(v85 + 288) ||
 				 nox_xxx_unitIsEnemyTo_5330C0(unit, *(uint32_t*)(v85 + 288)) ||
 				 nox_common_gameFlags_check_40A5C0(4096)) &&
-				!nox_xxx_spellByBookInsert_4FE340(unit, (int*)(data + 1), v37, 3, data[21]) && v37 == 1) {
+				!nox_xxx_spellByBookInsert_4FE340(unit, spells5, v37, 3, data[21]) && v37 == 1) {
 				v40 = 5;
 				while (v40) {
 					if (*v36) {

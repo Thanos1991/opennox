@@ -79,3 +79,7 @@ require (
 )
 
 replace github.com/timshannon/go-openal => github.com/opennox/go-openal v0.0.0-20220410091615-164a70f24e7c
+
+replace github.com/opennox/libs => ../../opennox-libs
+
+replace github.com/veandco/go-sdl2 => ../../go-sdl2
