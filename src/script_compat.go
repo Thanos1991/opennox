@@ -1,6 +1,7 @@
 package opennox
 
 import (
+	"context"
 	"image"
 	"time"
 
@@ -159,6 +160,16 @@ func (obj scrObject) OnTriggerDeactivate(fnc func()) {
 
 type noxScriptImpl struct {
 	s *Server
+}
+
+// SwitchMap implements script.MapSwitcher: campaign-style transition to
+// another map, keeping player characters. Deferred to the next loop
+// iteration so the current script tick finishes before teardown.
+func (s noxScriptImpl) SwitchMap(name string) {
+	srv := s.s
+	srv.QueueInLoop(context.Background(), func() {
+		srv.SwitchMap(name)
+	})
 }
 
 func (s noxScriptImpl) Frame() int {
