@@ -904,15 +904,6 @@ func (s *Server) SwitchMap(fname string) {
 	var v5 [1464]byte
 	copy(v5[:], ptr2408)
 
-	name := fname
-	if ext := filepath.Ext(fname); ext != "" {
-		name = strings.TrimSuffix(name, ext)
-	}
-	name = strings.ToLower(name)
-	nox_common_checkMapFile(name)
-	legacy.Sub_4CFDF0(int(memmap.Uint32(0x973F18, 3800)))
-	copy(ptr2408, v5[:])
-	legacy.Set_dword_5d4594_1548524(1)
 	mname := fname
 	if i := strings.IndexByte(fname, ':'); i >= 0 {
 		s.mapSwitchWPName = mname[i+1:]
@@ -920,10 +911,24 @@ func (s *Server) SwitchMap(fname string) {
 	} else {
 		s.mapSwitchWPName = ""
 	}
+	name := mname
+	if ext := filepath.Ext(name); ext != "" {
+		name = strings.TrimSuffix(name, ext)
+	}
+	name = strings.ToLower(name)
+	nox_common_checkMapFile(name)
+	legacy.Sub_4CFDF0(int(memmap.Uint32(0x973F18, 3800)))
+	copy(ptr2408, v5[:])
+	legacy.Set_dword_5d4594_1548524(1)
 	if s.MapSend.Active() != 0 {
 		s.MapSend.AbortAll(0)
 	}
 	mname = strings.ToLower(mname)
+	if filepath.Ext(mname) == "" {
+		// the map loaders build "maps/<name>/<mname>" from this path and
+		// expect the extension ("wiz02a.map"); a bare name aborts the load
+		mname += ".map"
+	}
 	s.nox_xxx_gameSetMapPath_409D70(mname)
 }
 

@@ -1273,7 +1273,20 @@ func (s *Server) nox_xxx_mapExitAndCheckNext_4D1860_server() error {
 	noxflags.UnsetGame(noxflags.GameFlag28)
 	s.ShouldCallMapEntry = true
 	if s.mapSwitchWPName != "" {
-		if wp := s.WPs.ByID(s.mapSwitchWPName); wp != nil {
+		if strings.HasPrefix(s.mapSwitchWPName, "@") {
+			// "map:@x,y" arrival syntax (openworld gates): place players at
+			// explicit coordinates instead of a named waypoint.
+			var px, py float32
+			if _, err := fmt.Sscanf(s.mapSwitchWPName, "@%f,%f", &px, &py); err == nil {
+				gameLog.Printf("moving player to position: %v,%v", px, py)
+				wpos := types.Pointf{X: px, Y: py}
+				for _, u := range s.Players.ListUnits() {
+					asObjectS(u).SetPos(wpos)
+				}
+			} else {
+				gameLog.Printf("cannot parse arrival position %q!", s.mapSwitchWPName)
+			}
+		} else if wp := s.WPs.ByID(s.mapSwitchWPName); wp != nil {
 			gameLog.Printf("moving player to waypoint: %q", s.mapSwitchWPName)
 			wpos := wp.Pos()
 			for _, u := range s.Players.ListUnits() {
