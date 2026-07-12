@@ -255,7 +255,15 @@ func openworldAddMenuButton(bottomMenu *gui.Window) {
 		return
 	}
 	btn.SetParent(bottomMenu)
-	btn.DrawData().SetText("Open World")
+	// SetParent appends at the draws-first end of the child list, which puts
+	// the button behind its siblings' menu art; move it to the top.
+	btn.ToFront()
+	d := btn.DrawData()
+	// Parsed as a root window, so the click target defaulted to the button
+	// itself; retarget to the menu section like file-parsed buttons
+	// (guiNewWidget sets draw.Window = parent).
+	d.Window = bottomMenu
+	d.SetText("Open World")
 }
 
 func sub_43BE40(a1 int) {

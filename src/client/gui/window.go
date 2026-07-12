@@ -493,6 +493,25 @@ func (win *Window) drawRecursive() bool {
 	return true
 }
 
+// ToFront moves the window to the head of its parent's child list.
+// Children draw from the most recently added backwards (see drawRecursive),
+// so the head draws last — on top of its siblings — and wins input hits.
+func (win *Window) ToFront() {
+	par := win.Parent()
+	if par == nil || win.prev == nil {
+		return // no parent, or already the head
+	}
+	win.unlink()
+	head := par.Field100Ptr
+	for head.Prev() != nil {
+		head = head.Prev()
+	}
+	win.prev = nil
+	win.next = head
+	head.prev = win
+	win.parent = par
+}
+
 func (win *Window) unlink() {
 	next := win.Next()
 	prev := win.Prev()
