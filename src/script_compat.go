@@ -1,7 +1,6 @@
 package opennox
 
 import (
-	"context"
 	"image"
 	"time"
 
@@ -163,13 +162,15 @@ type noxScriptImpl struct {
 }
 
 // SwitchMap implements script.MapSwitcher: campaign-style transition to
-// another map, keeping player characters. Deferred to the next loop
-// iteration so the current script tick finishes before teardown.
+// another map, keeping player characters. Accepts "map" or "map:Waypoint"
+// (arrival placement, see Server.SwitchMap).
+//
+// Called directly: Server.SwitchMap only flags the pending switch (the loop
+// performs the actual change later in the tick), and script code runs on the
+// server loop goroutine — queueing through QueueInLoop from here deadlocks,
+// since the unbuffered loopHooks channel is drained by this same goroutine.
 func (s noxScriptImpl) SwitchMap(name string) {
-	srv := s.s
-	srv.QueueInLoop(context.Background(), func() {
-		srv.SwitchMap(name)
-	})
+	s.s.SwitchMap(name)
 }
 
 func (s noxScriptImpl) Frame() int {
