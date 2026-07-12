@@ -214,6 +214,8 @@ func nox_game_showMainMenu4A1C00() bool {
 	if winMainMenuAnimBottom == nil {
 		return false
 	}
+	legacy.SetOpenworldNewGame(false) // openworld starts only via the button below
+	openworldAddMenuButton(bottomMenu)
 	guiSetBackButtonText("OptsBack.wnd:Quit")
 	nox_xxx_unknown_libname_11_4D1650()
 	sub_578CD0()
@@ -223,6 +225,37 @@ func nox_game_showMainMenu4A1C00() bool {
 		menuWin.Func94(&WindowEvent0x4007{Win: mpBtn})
 	}
 	return true
+}
+
+const owMenuButtonID = 141
+
+// The Open World button is injected by the engine so that no game data
+// (MainMenu.wnd) has to be modified; it continues the menu's button
+// staircase inside the bottom menu section (window 120) and reuses the
+// Solo Quest button art (IMAGEOFFSET is that image's registration point,
+// independent of the button position).
+const owMenuButtonWnd = `
+WINDOW
+  141 357 121 166 35 PUSHBUTTON;
+  STATUS = ENABLED+IMAGE+SMOOTH_TEXT+NOFOCUS;
+  STYLE = MOUSETRACK;
+  IMAGEOFFSET = -237 -210;
+  HILITEIMAGE = ButtonQuestLit;
+  SELECTEDIMAGE = ButtonQuestLit;
+  BACKGROUNDIMAGE = ButtonQuestUnlit;
+  ENABLEDIMAGE = NULL;
+  DISABLEDIMAGE = ButtonQuestUnlit;
+END
+`
+
+func openworldAddMenuButton(bottomMenu *gui.Window) {
+	btn := newWindowFromString(noxClient.GUI, owMenuButtonWnd, nil)
+	if btn == nil {
+		guiLog.Error("openworld: cannot create menu button")
+		return
+	}
+	btn.SetParent(bottomMenu)
+	btn.DrawData().SetText("Open World")
 }
 
 func sub_43BE40(a1 int) {
@@ -328,6 +361,41 @@ func nox_xxx_windowMainMenuProc_4A1DC0(a1 *gui.Window, ev gui.WindowEvent) gui.W
 					legacy.Sub_4A7A70(0)
 					winMainMenuAnimTop.Func13Ptr = unsafe.Pointer(legacy.Get_nox_game_showSelClass_4A4840())
 				}
+				clientPlaySoundSpecial(sound.SoundShellClick, 100)
+			} else {
+				v9 := strMan.GetStringInFile("caution", "mainmenu.c")
+				v5 := strMan.GetStringInFile("solo", "mainmenu.c")
+				NewDialogWindow(winMainMenu, v5, v9, gui.DialogOKButton|gui.DialogFlag6, nil, nil)
+				sub_44A360(1)
+				sub_44A4B0()
+				clientPlaySoundSpecial(sound.SoundShellClick, 100)
+			}
+			return gui.RawEventResp(1)
+		case owMenuButtonID: // Open World: new game in the shared world (openworld expansion)
+			noxServer.Announce = false
+			if nox_xxx_checkHasSoloMaps() {
+				noxflags.SetGame(noxflags.GameModeCoop)
+				noxflags.UnsetGame(noxflags.GameOnline)
+				noxflags.UnsetGame(noxflags.GameNotQuest)
+				noxServer.ai.nox_xxx_gameSetAudioFadeoutMb(0)
+				noxflags.UnsetEngine(noxflags.EngineAdmin | noxflags.EngineGodMode)
+				sub4D6F40(false)
+				sub_4D6F90(0)
+				noxServer.nox_xxx_setQuest_4D6F60(0)
+				legacy.Sub_4D6F80(0)
+				legacy.Nox_xxx_cliShowHideTubes_470AA0(0)
+				legacy.Sub_461440(0)
+				winMainMenuAnimOutStartFnc()
+				legacy.Nox_xxx_cliSetMinimapZoom_472520(1110)
+				if nox_xxx_parseGamedataBinPre_4D1630() == 0 {
+					nox_xxx_setContinueMenuOrHost_43DDD0(0)
+					nox_client_gui_flag_815132 = 0
+					return nil
+				}
+				legacy.SetOpenworldNewGame(true)
+				// openworld always creates a fresh character: straight to class select
+				legacy.Sub_4A7A70(0)
+				winMainMenuAnimTop.Func13Ptr = unsafe.Pointer(legacy.Get_nox_game_showSelClass_4A4840())
 				clientPlaySoundSpecial(sound.SoundShellClick, 100)
 			} else {
 				v9 := strMan.GetStringInFile("caution", "mainmenu.c")

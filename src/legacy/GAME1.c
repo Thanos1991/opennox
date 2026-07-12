@@ -129,12 +129,32 @@ unsigned int sub_409B50(const char* a1) {
 //----- (00409B80) --------------------------------------------------------
 char* sub_409B80() { return (char*)getMemAt(0x5D4594, 3452); }
 
+// Openworld expansion: when set (by the Open World main menu entry), a new
+// game starts in the openworld (ow_) map set instead of the class campaign.
+int nox_openworld_newgame = 0;
+
+// Remaps the per-class campaign start maps to their openworld starting zones.
+// Kept inside gameSetMapPath so every new-game path (class select, color
+// select) is covered without patching each call site.
+static char* nox_openworld_remap_start_map(char* a1) {
+	if (!nox_openworld_newgame)
+		return a1;
+	if (!nox_strcmpi(a1, "war01a.map"))
+		return "ow_war01a.map";
+	if (!nox_strcmpi(a1, "wiz01a.map"))
+		return "ow_wiz02a.map"; // wizards start in Galava, the hub-to-be
+	if (!nox_strcmpi(a1, "con01a.map"))
+		return "ow_con01a.map";
+	return a1;
+}
+
 //----- (00409D70) --------------------------------------------------------
 char* nox_xxx_gameSetMapPath_409D70(char* a1) {
 	char* result;  // eax
 	char* v2;      // eax
 	signed int v3; // esi
 
+	a1 = nox_openworld_remap_start_map(a1);
 	result = (char*)nox_strcmpi((const char*)getMemAt(0x5D4594, 2598188), a1);
 	if (result) {
 		strncpy((char*)getMemAt(0x5D4594, 2598188), a1, 0x50u);
